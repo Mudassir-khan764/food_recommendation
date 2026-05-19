@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Food - AI Meal Planner Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/modern.css') }}" rel="stylesheet">
+    <style>
+        .page-header {
+            margin-bottom: 2rem;
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .page-header h1 {
+            margin: 0 0 0.5rem 0;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: var(--text-tertiary);
+        }
+
+        .upload-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .upload-zone {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border: 2px dashed var(--color-primary);
+            border-radius: var(--radius-xl);
+            padding: 3rem;
+            text-align: center;
+            transition: all var(--transition-base);
+            cursor: pointer;
+            position: relative;
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .upload-zone:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            border-color: var(--color-primary-light);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .upload-zone.dragover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
+            border-color: var(--color-primary-light);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: var(--color-primary);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .upload-zone h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-primary);
+        }
+
+        .upload-zone p {
+            margin: 0 0 1.5rem 0;
+            color: var(--text-tertiary);
+        }
+
+        .upload-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-upload {
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow), 0 0 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-upload-secondary {
+            background: transparent;
+            border: 1.5px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .btn-upload-secondary:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-preview {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .preview-image {
+            width: 100%;
+            max-width: 400px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            margin-bottom: 1.5rem;
+        }
+
+        .analysis-card {
+            background: rgba(26, 40, 71, 0.4);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .analysis-card h4 {
+            margin: 0 0 1rem 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .analysis-result {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.2) 0%, rgba(245, 87, 108, 0.2) 100%);
+            border: 1px solid rgba(240, 147, 251, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-nutrition {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .nutrition-item {
+            text-align: center;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+        }
+
+        .nutrition-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .nutrition-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.75rem;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--gradient-accent);
+            border-radius: 3px;
+            transition: width 0.6s ease-out;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-accept {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-accept:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-reject {
+            background: transparent;
+            border: 1.5px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .btn-reject:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--color-danger);
+            color: var(--color-danger);
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 1rem;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .history-section {
+            margin-top: 3rem;
+        }
+
+        .history-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(26, 40, 71, 0.4);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            transition: all var(--transition-base);
+        }
+
+        .history-item:hover {
+            border-color: var(--color-primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .history-image {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .history-time {
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        .history-action {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .upload-zone {
+                padding: 2rem;
+            }
+
+            .upload-buttons {
+                gap: 0.5rem;
+            }
+
+            .btn-upload {
+                padding: 0.625rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .result-nutrition {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .upload-zone {
+                padding: 1.5rem;
+            }
+
+            .upload-icon {
+                font-size: 2.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .history-item {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="/" class="navbar-brand">
+            <i class="fas fa-brain"></i> AI Meal Planner Pro
+        </a>
+        <div class="navbar-menu">
+            <a href="/dashboard" class="navbar-item">Dashboard</a>
+            <a href="/track" class="navbar-item">Track</a>
+            <a href="/food-upload" class="navbar-item active">Upload</a>
+            <a href="/chat" class="navbar-item">AI Chat</a>
+            <div class="navbar-user">
+                <div class="navbar-avatar">U</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-label">Main</div>
+        <a href="/dashboard" class="sidebar-item">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/track" class="sidebar-item">
+            <i class="fas fa-utensils"></i>
+            <span>Track Food</span>
+        </a>
+        <a href="/food-upload" class="sidebar-item active">
+            <i class="fas fa-image"></i>
+            <span>Upload Food</span>
+        </a>
+        <a href="/nutrition-optimizer" class="sidebar-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Optimizer</span>
+        </a>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Account</div>
+            <a href="/profile" class="sidebar-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="/logout" class="sidebar-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Header -->
+            <div class="page-header">
+                <h1>🍱 Upload Food Photo</h1>
+                <p>Let AI identify your meal and calculate nutrition instantly</p>
+            </div>
+
+            <!-- Upload Container -->
+            <div class="upload-container">
+                <!-- Upload Zone -->
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📸</div>
+                    <h3>Drag & drop your food photo</h3>
+                    <p>or click to select a file from your computer</p>
+                    <div class="upload-buttons">
+                        <button class="btn-upload" id="selectBtn">
+                            <i class="fas fa-folder-open"></i> Select Photo
+                        </button>
+                        <button class="btn-upload btn-upload-secondary" id="cameraBtn">
+                            <i class="fas fa-camera"></i> Take Photo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hidden File Input -->
+                <input type="file" id="fileInput" accept="image/*">
+
+                <!-- Loading Spinner -->
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner"></div>
+                    <p>Analyzing your food...</p>
+                </div>
+
+                <!-- Preview & Analysis -->
+                <div class="upload-preview" id="uploadPreview">
+                    <img id="previewImage" class="preview-image" src="" alt="Food preview">
+
+                    <div class="analysis-card">
+                        <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
+                        <div id="analysisResults"></div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-action btn-accept" id="acceptBtn">
+                            <i class="fas fa-check"></i> Add to Daily Log
+                        </button>
+                        <button class="btn-action btn-reject" id="rejectBtn">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upload History -->
+                <div class="history-section" id="historySection" style="display: none;">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--text-primary);">Recent Uploads</h3>
+                    <div id="historyContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const selectBtn = document.getElementById('selectBtn');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const uploadPreview = document.getElementById('uploadPreview');
+        const previewImage = document.getElementById('previewImage');
+        const analysisResults = document.getElementById('analysisResults');
+        const acceptBtn = document.getElementById('acceptBtn');
+        const rejectBtn = document.getElementById('rejectBtn');
+
+        // File selection
+        selectBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag & drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                uploadZone.style.display = 'none';
+                loadingSpinner.style.display = 'block';
+
+                // Simulate AI analysis
+                setTimeout(() => {
+                    showAnalysisResults();
+                }, 2000);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showAnalysisResults() {
+            loadingSpinner.style.display = 'none';
+            uploadPreview.style.display = 'block';
+
+            const mockResults = {
+                name: 'Grilled Chicken with Rice',
+                confidence: 94,
+                calories: 680,
+                protein: 45,
+                carbs: 68,
+                fat: 12
+            };
+
+            analysisResults.innerHTML = `
+                <div class="analysis-result">
+                    <div class="result-name">${mockResults.name}</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${mockResults.confidence}%"></div>
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                        ${mockResults.confidence}% confidence
+                    </div>
+                    <div class="result-nutrition">
+                        <div class="nutrition-item">
+                            <div class="nutrition-value">${mockResults.calories}</div>
+                            <div class="nutrition-label">Calories</div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-value">${mockResults.protein}g</div>
+                            <div class="nutrition-label">Protein</div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-value">${mockResults.carbs}g</div>
+                            <div class="nutrition-label">Carbs</div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-value">${mockResults.fat}g</div>
+                            <div class="nutrition-label">Fat</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        acceptBtn.addEventListener('click', () => {
+            alert('Meal added to your daily log!');
+            resetUpload();
+        });
+
+        rejectBtn.addEventListener('click', () => {
+            resetUpload();
+        });
+
+        function resetUpload() {
+            uploadZone.style.display = 'block';
+            uploadPreview.style.display = 'none';
+            loadingSpinner.style.display = 'none';
+            fileInput.value = '';
+        }
+    </script>
+</body>
+</html>

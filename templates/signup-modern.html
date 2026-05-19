@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - AI Meal Planner Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/modern.css') }}" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .signup-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+        }
+
+        .signup-header {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+        }
+
+        .signup-logo {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .signup-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .signup-header p {
+            margin: 0;
+            color: var(--text-tertiary);
+        }
+
+        .signup-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1rem 3rem;
+        }
+
+        .signup-form-wrapper {
+            width: 100%;
+            max-width: 480px;
+            animation: slide-up 0.6s ease-out;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: rgba(30, 46, 71, 0.5);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all var(--transition-base);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            background: rgba(30, 46, 71, 0.8);
+            border-color: var(--color-primary);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: rgba(30, 46, 71, 0.5);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all var(--transition-base);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-select:focus {
+            outline: none;
+            background: rgba(30, 46, 71, 0.8);
+            border-color: var(--color-primary);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .form-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .form-check input {
+            margin-top: 0.25rem;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+            flex-shrink: 0;
+        }
+
+        .form-check a {
+            color: var(--color-primary);
+        }
+
+        .password-requirements {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .req-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-tertiary);
+        }
+
+        .req-item.met {
+            color: var(--color-success);
+        }
+
+        .req-icon {
+            font-size: 0.75rem;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 50%;
+        }
+
+        .btn-signup {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-glow);
+            font-family: 'Poppins', sans-serif;
+            margin-bottom: 1rem;
+        }
+
+        .btn-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow), 0 0 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-signup:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            color: var(--text-tertiary);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-light);
+        }
+
+        .social-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-social {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: rgba(30, 46, 71, 0.5);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-social:hover {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: var(--color-primary);
+        }
+
+        .signup-footer {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .signup-footer a {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .signup-footer a:hover {
+            color: var(--color-primary-light);
+        }
+
+        @media (max-width: 480px) {
+            .signup-header {
+                padding: 2rem 1rem 1.5rem;
+            }
+
+            .signup-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .signup-form-wrapper {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <!-- Header -->
+        <div class="signup-header">
+            <div class="signup-logo">🧠</div>
+            <h1>Get Started Today</h1>
+            <p>Join thousands of users transforming their nutrition</p>
+        </div>
+
+        <!-- Form Content -->
+        <div class="signup-content">
+            <div class="signup-form-wrapper">
+                <form id="signupForm">
+                    <!-- Personal Info Section -->
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-input" id="firstName" placeholder="John" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-input" id="lastName" placeholder="Doe" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-input" id="email" placeholder="john@example.com" required>
+                        </div>
+                    </div>
+
+                    <!-- Health Info Section -->
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Age</label>
+                                <input type="number" class="form-input" id="age" placeholder="25" min="13" max="120" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Goal</label>
+                                <select class="form-select" id="goal" required>
+                                    <option value="">Select your goal</option>
+                                    <option value="weight_loss">Lose Weight</option>
+                                    <option value="muscle_gain">Gain Muscle</option>
+                                    <option value="maintain">Maintain</option>
+                                    <option value="bulk">Bulk Up</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Section -->
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-input" id="password" placeholder="Create a strong password" required>
+                        </div>
+
+                        <div class="password-requirements">
+                            <div class="req-item">
+                                <span class="req-icon">✓</span>
+                                At least 8 characters
+                            </div>
+                            <div class="req-item">
+                                <span class="req-icon">✓</span>
+                                One uppercase letter
+                            </div>
+                            <div class="req-item">
+                                <span class="req-icon">✓</span>
+                                One number
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm your password" required>
+                        </div>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div class="form-check">
+                        <input type="checkbox" id="terms" required>
+                        <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                    </div>
+
+                    <button type="submit" class="btn-signup">
+                        Create Account
+                    </button>
+
+                    <div class="divider">Or continue with</div>
+
+                    <div class="social-buttons">
+                        <button class="btn-social" type="button">
+                            <i class="fab fa-google"></i>
+                        </button>
+                        <button class="btn-social" type="button">
+                            <i class="fab fa-github"></i>
+                        </button>
+                    </div>
+
+                    <div class="signup-footer">
+                        Already have an account?
+                        <a href="/login">Sign in</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const passwordInput = document.getElementById('password');
+        const requirementsItems = document.querySelectorAll('.req-item');
+
+        passwordInput.addEventListener('input', (e) => {
+            const password = e.target.value;
+            
+            const hasLength = password.length >= 8;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+
+            requirementsItems[0].classList.toggle('met', hasLength);
+            requirementsItems[1].classList.toggle('met', hasUppercase);
+            requirementsItems[2].classList.toggle('met', hasNumber);
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+
+            const formData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                age: document.getElementById('age').value,
+                goal: document.getElementById('goal').value,
+                password: password
+            };
+
+            try {
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('Account created successfully! Please log in.');
+                    window.location.href = '/login';
+                } else {
+                    alert('Signup failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

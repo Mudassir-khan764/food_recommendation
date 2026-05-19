@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Food - AI Meal Planner Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/modern.css') }}" rel="stylesheet">
+    <style>
+        .track-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .track-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .date-selector {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn-date {
+            padding: 0.5rem 1rem;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-date:hover,
+        .btn-date.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .daily-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            backdrop-filter: blur(10px);
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .summary-card:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .summary-label {
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-goal {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.75rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-accent);
+            border-radius: 3px;
+            transition: width 0.6s ease-out;
+        }
+
+        .meals-container {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .meal-section {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            background: rgba(26, 40, 71, 0.4);
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .meal-section-header {
+            padding: 1rem 1.25rem;
+            background: rgba(102, 126, 234, 0.15);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .meal-section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .meal-section-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .stat {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-right: 0.25rem;
+        }
+
+        .meal-items {
+            padding: 1rem 1.25rem;
+        }
+
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
+            transition: all var(--transition-base);
+        }
+
+        .food-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(4px);
+        }
+
+        .food-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .food-info {
+            flex: 1;
+        }
+
+        .food-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .food-details {
+            font-size: 0.825rem;
+            color: var(--text-tertiary);
+        }
+
+        .food-nutrition {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            text-align: right;
+        }
+
+        .food-nutrition-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .food-nutrition-value {
+            font-weight: 700;
+            color: var(--color-primary);
+            font-size: 0.95rem;
+        }
+
+        .food-nutrition-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .food-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(102, 126, 234, 0.2);
+            color: var(--color-primary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .btn-icon:hover {
+            background: rgba(102, 126, 234, 0.3);
+            transform: scale(1.1);
+        }
+
+        .btn-icon-danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--color-danger);
+        }
+
+        .add-food-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        .add-food-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .empty-meal {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-tertiary);
+        }
+
+        .empty-meal i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+
+        .search-section {
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            background: rgba(30, 46, 71, 0.5);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .search-input:focus {
+            outline: none;
+            background: rgba(30, 46, 71, 0.8);
+            border-color: var(--color-primary);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .track-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .daily-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .food-nutrition {
+                gap: 0.75rem;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .food-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .food-nutrition {
+                justify-content: flex-start;
+                width: 100%;
+                margin-top: 0.75rem;
+            }
+
+            .food-actions {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 0.75rem;
+            }
+
+            .daily-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="/" class="navbar-brand">
+            <i class="fas fa-brain"></i> AI Meal Planner Pro
+        </a>
+        <div class="navbar-menu">
+            <a href="/dashboard" class="navbar-item">Dashboard</a>
+            <a href="/track" class="navbar-item active">Track</a>
+            <a href="/food-upload" class="navbar-item">Upload</a>
+            <a href="/chat" class="navbar-item">AI Chat</a>
+            <div class="navbar-user">
+                <div class="navbar-avatar">U</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-label">Main</div>
+        <a href="/dashboard" class="sidebar-item">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/track" class="sidebar-item active">
+            <i class="fas fa-utensils"></i>
+            <span>Track Food</span>
+        </a>
+        <a href="/food-upload" class="sidebar-item">
+            <i class="fas fa-image"></i>
+            <span>Upload Food</span>
+        </a>
+        <a href="/nutrition-optimizer" class="sidebar-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Optimizer</span>
+        </a>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Account</div>
+            <a href="/profile" class="sidebar-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="/logout" class="sidebar-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Header -->
+            <div class="track-header">
+                <h1>🍽️ Track Your Food</h1>
+                <div class="date-selector">
+                    <button class="btn-date">← Prev</button>
+                    <button class="btn-date active">Today</button>
+                    <button class="btn-date">Next →</button>
+                </div>
+            </div>
+
+            <!-- Daily Summary -->
+            <div class="daily-summary">
+                <div class="summary-card">
+                    <div class="summary-label">
+                        <i class="fas fa-fire"></i> Calories
+                    </div>
+                    <div class="summary-value">1,280</div>
+                    <div class="summary-goal">2,500 goal</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 51%"></div>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">
+                        <i class="fas fa-dumbbell"></i> Protein
+                    </div>
+                    <div class="summary-value">85g</div>
+                    <div class="summary-goal">150g goal</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 57%"></div>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">
+                        <i class="fas fa-bread-slice"></i> Carbs
+                    </div>
+                    <div class="summary-value">156g</div>
+                    <div class="summary-goal">300g goal</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 52%"></div>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">
+                        <i class="fas fa-oil"></i> Fat
+                    </div>
+                    <div class="summary-value">42g</div>
+                    <div class="summary-goal">80g goal</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 52.5%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Search foods...">
+                    <button class="btn btn-primary btn-sm">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="btn btn-secondary btn-sm">
+                        <i class="fas fa-plus"></i> Add Meal
+                    </button>
+                </div>
+            </div>
+
+            <!-- Meals -->
+            <div class="meals-container">
+                <!-- Breakfast -->
+                <div class="meal-section">
+                    <div class="meal-section-header">
+                        <h3 class="meal-section-title">
+                            <i class="fas fa-sun"></i> Breakfast
+                        </h3>
+                        <div class="meal-section-stats">
+                            <span class="stat"><span class="stat-value">350</span> Cal</span>
+                            <span class="stat"><span class="stat-value">15g</span> Protein</span>
+                        </div>
+                    </div>
+                    <div class="meal-items">
+                        <div class="food-item">
+                            <div class="food-info">
+                                <div class="food-name">Scrambled Eggs with Toast</div>
+                                <div class="food-details">2 eggs, 1 slice whole wheat bread</div>
+                            </div>
+                            <div class="food-nutrition">
+                                <div class="food-nutrition-item">
+                                    <div class="food-nutrition-value">280</div>
+                                    <div class="food-nutrition-label">Cal</div>
+                                </div>
+                                <div class="food-nutrition-item">
+                                    <div class="food-nutrition-value">14g</div>
+                                    <div class="food-nutrition-label">Protein</div>
+                                </div>
+                            </div>
+                            <div class="food-actions">
+                                <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-icon-danger"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="food-item">
+                            <div class="food-info">
+                                <div class="food-name">Orange Juice</div>
+                                <div class="food-details">200ml</div>
+                            </div>
+                            <div class="food-nutrition">
+                                <div class="food-nutrition-item">
+                                    <div class="food-nutrition-value">90</div>
+                                    <div class="food-nutrition-label">Cal</div>
+                                </div>
+                                <div class="food-nutrition-item">
+                                    <div class="food-nutrition-value">1g</div>
+                                    <div class="food-nutrition-label">Protein</div>
+                                </div>
+                            </div>
+                            <div class="food-actions">
+                                <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-icon-danger"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <button class="add-food-btn">
+                            <i class="fas fa-plus"></i> Add More Items
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lunch -->
+                <div class="meal-section">
+                    <div class="meal-section-header">
+                        <h3 class="meal-section-title">
+                            <i class="fas fa-cloud-sun"></i> Lunch
+                        </h3>
+                        <div class="meal-section-stats">
+                            <span class="stat"><span class="stat-value">650</span> Cal</span>
+                            <span class="stat"><span class="stat-value">45g</span> Protein</span>
+                        </div>
+                    </div>
+                    <div class="meal-items">
+                        <div class="food-item">
+                            <div class="food-info">
+                                <div class="food-name">Grilled Chicken Salad</div>
+                                <div class="food-details">150g chicken, mixed greens, olive oil</div>
+                            </div>
+                            <div class="food-nutrition">
+                                <div class="food-nutrition-item">
+                                    <div class="food-nutrition-value">450</div>
+                                    <div class="food-nutrition-label">Cal</div>
+                                </div>
+                                <div class="food-nutrition-item">
+                                    <div class="food-nutrition-value">42g</div>
+                                    <div class="food-nutrition-label">Protein</div>
+                                </div>
+                            </div>
+                            <div class="food-actions">
+                                <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-icon-danger"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="food-item">
+                            <div class="food-info">
+                                <div class="food-name">Brown Rice</div>
+                                <div class="food-details">150g cooked</div>
+                            </div>
+                            <div class="food-nutrition">
+                                <div class="food-nutrition-item">
+                                    <div class="food-nutrition-value">200</div>
+                                    <div class="food-nutrition-label">Cal</div>
+                                </div>
+                                <div class="food-nutrition-item">
+                                    <div class="food-nutrition-value">3g</div>
+                                    <div class="food-nutrition-label">Protein</div>
+                                </div>
+                            </div>
+                            <div class="food-actions">
+                                <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-icon-danger"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <button class="add-food-btn">
+                            <i class="fas fa-plus"></i> Add More Items
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dinner -->
+                <div class="meal-section">
+                    <div class="meal-section-header">
+                        <h3 class="meal-section-title">
+                            <i class="fas fa-moon"></i> Dinner
+                        </h3>
+                        <div class="meal-section-stats">
+                            <span class="stat"><span class="stat-value">0</span> Cal</span>
+                            <span class="stat"><span class="stat-value">0g</span> Protein</span>
+                        </div>
+                    </div>
+                    <div class="meal-items">
+                        <div class="empty-meal">
+                            <i class="fas fa-utensils"></i>
+                            <p>No meals logged yet</p>
+                        </div>
+                        <button class="add-food-btn">
+                            <i class="fas fa-plus"></i> Add Dinner
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

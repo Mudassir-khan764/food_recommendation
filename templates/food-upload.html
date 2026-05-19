@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Detection & Nutrition Analysis - NutriAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-color: #28a745;
+            --info-color: #667eea;
+            --warning-color: #ffc107;
+        }
+
+        body {
+            background: #f8f9fa;
+        }
+
+        .detection-hero {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 15px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .detection-hero h1 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .detection-hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .upload-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .drop-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 50px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone:hover {
+            border-color: #764ba2;
+            background: linear-gradient(135deg, #e9ecef 0%, #b8c6db 100%);
+            transform: translateY(-5px);
+        }
+
+        .drop-zone-icon {
+            font-size: 3.5rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .nutrition-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .nutrition-card:hover {
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .nutrition-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .nutrition-icon {
+            font-size: 2rem;
+            color: #667eea;
+            margin-right: 15px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .nutrition-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #333;
+            margin: 0;
+            text-transform: capitalize;
+        }
+
+        .nutrition-detail {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .detail-unit {
+            font-size: 0.85rem;
+            color: #999;
+            margin-left: 5px;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .image-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        #detectionCanvas {
+            width: 100%;
+            display: block;
+        }
+
+        .food-list-container {
+            margin-top: 30px;
+        }
+
+        .food-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .food-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .food-emoji {
+            font-size: 2.5rem;
+        }
+
+        .food-details h4 {
+            color: #333;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            text-transform: capitalize;
+        }
+
+        .food-details p {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .food-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .stat-box {
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-primary-action {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary-action {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary-action:hover {
+            background: #5a6268;
+            transform: translateY(-3px);
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .error-alert {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+            border-left: 4px solid #dc3545;
+        }
+
+        .success-alert {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+            border-left: 4px solid #28a745;
+        }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar-custom {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .detection-hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .upload-card {
+                padding: 20px;
+            }
+
+            .food-item {
+                grid-template-columns: 1fr;
+            }
+
+            .food-stats {
+                justify-content: flex-start;
+            }
+
+            .nutrition-detail {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-action {
+                min-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="modern-nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="nav-brand">
+                    <div class="brand-icon">🧠</div>
+                    <span class="brand-text">NutriAI</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="/" class="nav-item">Home</a>
+                    <a href="/dashboard" class="nav-item">Dashboard</a>
+                    <a href="/food-upload" class="nav-item active">Food Detection</a>
+                    <a href="/logout" class="nav-item">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container" style="padding: 40px 20px;">
+        <!-- Hero Section -->
+        <div class="detection-hero">
+            <h1><i class="fas fa-utensils"></i> Food Nutrition Analysis</h1>
+            <p>Upload images to detect multiple food items and calculate detailed nutrition information</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-card" id="uploadSection">
+            <h3 style="color: #333; margin-bottom: 25px;">
+                <i class="fas fa-cloud-upload-alt" style="color: #667eea; margin-right: 10px;"></i>
+                Upload Food Image
+            </h3>
+
+            <form id="foodUploadForm" enctype="multipart/form-data">
+                <!-- File Upload Area -->
+                <div class="drop-zone" id="uploadArea">
+                    <div class="drop-zone-icon">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <h4 style="color: #333; margin: 10px 0;">Drop your food image here</h4>
+                    <p style="color: #666; margin: 0;">or click to browse files</p>
+                    <div style="margin-top: 15px;">
+                        <span style="display: inline-block; background: white; padding: 6px 12px; margin: 5px; border-radius: 20px; font-weight: 600; color: #667eea; font-size: 0.85rem;">JPG/PNG</span>
+                        <span style="display: inline-block; background: white; padding: 6px 12px; margin: 5px; border-radius: 20px; font-weight: 600; color: #667eea; font-size: 0.85rem;">Max 5MB</span>
+                    </div>
+                </div>
+                <input type="file" id="foodImage" name="food_image" accept=".jpg,.jpeg,.png" hidden>
+
+                <!-- Image Preview -->
+                <div id="imagePreview" style="display: none; margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h5 style="margin: 0;">Preview</h5>
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="removeImage">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </div>
+                    <img id="previewImg" src="" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <div style="margin-top: 12px; font-size: 0.9rem; color: #666;">
+                        <strong>File:</strong> <span id="fileName"></span> | <strong>Size:</strong> <span id="fileSize"></span>
+                    </div>
+                </div>
+
+                <!-- Analyze Button -->
+                <button type="submit" class="btn btn-action btn-primary-action" id="analyzeBtn" disabled style="width: 100%; margin-top: 20px;">
+                    <i class="fas fa-brain"></i> Analyze & Detect Foods
+                </button>
+            </form>
+
+            <!-- Error Alert -->
+            <div id="errorAlert" class="error-alert"></div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingSpinner" class="upload-card" style="display: none;">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <div class="loading-text">
+                    <i class="fas fa-hourglass-half"></i> Analyzing your food image...
+                </div>
+                <p style="color: #999; margin-top: 10px;">Detecting items and calculating nutrition</p>
+            </div>
+        </div>
+
+        <!-- Detection Results -->
+        <div id="detectionResults" style="display: none;">
+            <!-- Image with Bounding Boxes -->
+            <div class="upload-card">
+                <h3 style="color: #333; margin-bottom: 20px;">
+                    <i class="fas fa-check-circle" style="color: #28a745; margin-right: 10px;"></i>
+                    Detection Preview
+                </h3>
+                <div class="image-container">
+                    <canvas id="detectionCanvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Nutrition Summary -->
+            <div class="summary-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <h4 style="margin: 0; font-size: 1.5rem;">
+                        <i class="fas fa-chart-pie"></i> Nutrition Summary
+                    </h4>
+                    <span id="detectionBadge" style="background: rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem;"></span>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-label">Items Detected</div>
+                        <div class="summary-value" id="totalDetections">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Total Calories</div>
+                        <div class="summary-value" id="totalCaloriesSummary">0<span style="font-size: 0.6em; margin-left: 5px;">kcal</span></div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Unique Foods</div>
+                        <div class="summary-value" id="uniqueFoodsCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Food Analysis -->
+            <div class="upload-card">
+                <h3 style="color: #333; margin-bottom: 20px;">
+                    <i class="fas fa-list" style="color: #667eea; margin-right: 10px;"></i>
+                    Detected Foods Breakdown
+                </h3>
+                <div id="nutritionDetailsList" class="food-list-container"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="upload-card">
+                <div class="action-buttons">
+                    <button type="button" class="btn-action btn-primary-action" id="analyzeAnotherBtn">
+                        <i class="fas fa-camera"></i> Analyze Another Image
+                    </button>
+                    <button type="button" class="btn-action btn-secondary-action" id="addToMealPlanBtn">
+                        <i class="fas fa-utensils"></i> Add to Meal Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/food-upload.js') }}"></script>
+</body>
+</html>

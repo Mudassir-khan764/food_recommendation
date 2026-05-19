@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NutriAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-dark: #1e7e34;
+            --secondary-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            box-shadow: var(--card-shadow);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .progress-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .progress-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin: 0 auto 20px;
+            position: relative;
+            background: conic-gradient(var(--primary-color) 0deg, var(--primary-color) var(--progress), #e9ecef var(--progress), #e9ecef 360deg);
+        }
+
+        .progress-circle::before {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .progress-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .progress-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .progress-goal {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .meal-summary-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .meal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .meal-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .meal-totals {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .food-item:last-child {
+            border-bottom: none;
+        }
+
+        .food-name {
+            font-weight: 500;
+        }
+
+        .food-details {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .food-calories {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .no-meals {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .quick-actions {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn-track-food {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-track-food:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-leaf"></i> NutriAI</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/track">Track Food</a>
+                <a class="nav-link active" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/meal-planner">AI Meal Planner</a>
+                <a class="nav-link" href="/chat">AI Food Therapist</a>
+                <a class="nav-link" href="/nutrition-optimizer">Nutrition Optimizer</a>
+                <a class="nav-link" href="/profile">Profile</a>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1><i class="fas fa-chart-line"></i> Today Consumption</h1>
+            <p>Track your nutritional intake and stay on top of your goals</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <h5 class="mb-3"><i class="fas fa-bolt"></i> Quick Actions</h5>
+            <a href="/track" class="btn-track-food">
+                <i class="fas fa-plus"></i> Track Food
+            </a>
+        </div>
+
+        <!-- Progress Charts -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="progress-card">
+                    <div class="progress-circle" id="caloriesCircle" style="--progress: 0deg;">
+                        <div class="progress-content">
+                            <div class="progress-value" id="caloriesValue">0</div>
+                            <div class="progress-label">kcal</div>
+                        </div>
+                    </div>
+                    <h6>Calories</h6>
+                    <div class="progress-goal" id="caloriesGoal">Goal: 2000 kcal</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="progress-card">
+                    <div class="progress-circle" id="proteinCircle" style="--progress: 0deg;">
+                        <div class="progress-content">
+                            <div class="progress-value" id="proteinValue">0</div>
+                            <div class="progress-label">g</div>
+                        </div>
+                    </div>
+                    <h6>Protein</h6>
+                    <div class="progress-goal" id="proteinGoal">Goal: 50g</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="progress-card">
+                    <div class="progress-circle" id="carbsCircle" style="--progress: 0deg;">
+                        <div class="progress-content">
+                            <div class="progress-value" id="carbsValue">0</div>
+                            <div class="progress-label">g</div>
+                        </div>
+                    </div>
+                    <h6>Carbs</h6>
+                    <div class="progress-goal" id="carbsGoal">Goal: 300g</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="progress-card">
+                    <div class="progress-circle" id="fatCircle" style="--progress: 0deg;">
+                        <div class="progress-content">
+                            <div class="progress-value" id="fatValue">0</div>
+                            <div class="progress-label">g</div>
+                        </div>
+                    </div>
+                    <h6>Fat</h6>
+                    <div class="progress-goal" id="fatGoal">Goal: 65g</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meal Summaries -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="meal-summary-card">
+                    <div class="meal-header">
+                        <h5 class="meal-title"><i class="fas fa-sun"></i> Breakfast</h5>
+                        <div class="meal-totals" id="breakfastTotals">0 kcal | P: 0g | C: 0g | F: 0g</div>
+                    </div>
+                    <div id="breakfastItems">
+                        <div class="no-meals">
+                            <i class="fas fa-coffee"></i>
+                            <p>No breakfast logged yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="meal-summary-card">
+                    <div class="meal-header">
+                        <h5 class="meal-title"><i class="fas fa-utensils"></i> Lunch</h5>
+                        <div class="meal-totals" id="lunchTotals">0 kcal | P: 0g | C: 0g | F: 0g</div>
+                    </div>
+                    <div id="lunchItems">
+                        <div class="no-meals">
+                            <i class="fas fa-utensils"></i>
+                            <p>No lunch logged yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="meal-summary-card">
+                    <div class="meal-header">
+                        <h5 class="meal-title"><i class="fas fa-apple-alt"></i> Snack</h5>
+                        <div class="meal-totals" id="snackTotals">0 kcal | P: 0g | C: 0g | F: 0g</div>
+                    </div>
+                    <div id="snackItems">
+                        <div class="no-meals">
+                            <i class="fas fa-apple-alt"></i>
+                            <p>No snacks logged yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="meal-summary-card">
+                    <div class="meal-header">
+                        <h5 class="meal-title"><i class="fas fa-moon"></i> Dinner</h5>
+                        <div class="meal-totals" id="dinnerTotals">0 kcal | P: 0g | C: 0g | F: 0g</div>
+                    </div>
+                    <div id="dinnerItems">
+                        <div class="no-meals">
+                            <i class="fas fa-moon"></i>
+                            <p>No dinner logged yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize with data from Flask
+        const initialData = {
+            meals: {{ today_meals|default({'breakfast': [], 'lunch': [], 'snack': [], 'dinner': []})|tojson }},
+            summary: {{ today_summary|default({'calories': 0, 'protein': 0, 'carbs': 0, 'fat': 0})|tojson }}
+        };
+        
+        // Load today's consumption data
+        async function loadTodayConsumption() {
+            try {
+                const response = await fetch('/api/today_meals');
+                if (!response.ok) throw new Error('Failed to load consumption data');
+
+                const data = await response.json();
+                renderConsumption(data);
+            } catch (error) {
+                console.error('Error loading consumption:', error);
+                // Fall back to initial data
+                renderConsumption(initialData);
+            }
+        }
+
+        // Render consumption data
+        function renderConsumption(data) {
+            const meals = data.meals || {};
+            const summary = data.summary || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+            // Get user goals from template variables
+            const goals = {
+                calories: {{ daily_goals.calories|default(2000) }},
+                protein: {{ daily_goals.protein|default(50) }},
+                carbs: {{ daily_goals.carbs|default(300) }},
+                fat: {{ daily_goals.fat|default(65) }}
+            };
+
+            // Update progress circles
+            updateProgressCircle('caloriesCircle', 'caloriesValue', summary.calories, goals.calories, 'caloriesGoal', `${goals.calories} kcal`);
+            updateProgressCircle('proteinCircle', 'proteinValue', summary.protein, goals.protein, 'proteinGoal', `${goals.protein}g`);
+            updateProgressCircle('carbsCircle', 'carbsValue', summary.carbs, goals.carbs, 'carbsGoal', `${goals.carbs}g`);
+            updateProgressCircle('fatCircle', 'fatValue', summary.fat, goals.fat, 'fatGoal', `${goals.fat}g`);
+
+            // Update meal summaries
+            updateMealSummary('breakfast', meals.breakfast || []);
+            updateMealSummary('lunch', meals.lunch || []);
+            updateMealSummary('snack', meals.snack || []);
+            updateMealSummary('dinner', meals.dinner || []);
+        }
+
+        function updateProgressCircle(circleId, valueId, current, goal, goalId, goalText) {
+            const percentage = Math.min((current / goal) * 100, 100);
+            const degrees = (percentage / 100) * 360;
+
+            document.getElementById(circleId).style.setProperty('--progress', `${degrees}deg`);
+            document.getElementById(valueId).textContent = Math.round(current);
+            document.getElementById(goalId).textContent = `Goal: ${goalText}`;
+        }
+
+        function updateMealSummary(mealType, foods) {
+            const totals = {
+                calories: foods.reduce((sum, f) => sum + (f.calories || 0), 0),
+                protein: foods.reduce((sum, f) => sum + (f.protein || 0), 0),
+                carbs: foods.reduce((sum, f) => sum + (f.carbs || 0), 0),
+                fat: foods.reduce((sum, f) => sum + (f.fat || 0), 0)
+            };
+
+            // Update totals
+            const totalsElement = document.getElementById(`${mealType}Totals`);
+            totalsElement.textContent = `${Math.round(totals.calories)} kcal | P: ${Math.round(totals.protein)}g | C: ${Math.round(totals.carbs)}g | F: ${Math.round(totals.fat)}g`;
+
+            // Update food items
+            const itemsElement = document.getElementById(`${mealType}Items`);
+            if (foods.length === 0) {
+                itemsElement.innerHTML = `
+                    <div class="no-meals">
+                        <i class="fas fa-utensils"></i>
+                        <p>No ${mealType} logged yet</p>
+                    </div>
+                `;
+            } else {
+                let html = '';
+                foods.forEach(food => {
+                    html += `
+                        <div class="food-item">
+                            <div>
+                                <div class="food-name">${food.food_name}</div>
+                                <div class="food-details">${food.quantity}${food.portion_type} • P: ${food.protein.toFixed(1)}g • C: ${food.carbs.toFixed(1)}g • F: ${food.fat.toFixed(1)}g</div>
+                            </div>
+                            <div class="food-calories">${Math.round(food.calories)} kcal</div>
+                        </div>
+                    `;
+                });
+                itemsElement.innerHTML = html;
+            }
+        }
+
+        // Initialize
+        renderConsumption(initialData); // Render initial data immediately
+        loadTodayConsumption(); // Then load fresh data
+
+        // Refresh data every 30 seconds
+        setInterval(loadTodayConsumption, 30000);
+    </script>
+</body>
+</html>

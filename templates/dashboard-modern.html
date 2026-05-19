@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI Meal Planner Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/modern.css') }}" rel="stylesheet">
+    <style>
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .dashboard-title h1 {
+            margin: 0;
+            font-size: 2rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-title p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-tertiary);
+        }
+
+        .dashboard-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+        }
+
+        .stat-card:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .stat-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .stat-change {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--color-success);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .meal-section {
+            margin-top: 2.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .section-header a {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color var(--transition-fast);
+        }
+
+        .section-header a:hover {
+            color: var(--color-primary-light);
+        }
+
+        .meal-card {
+            background: rgba(26, 40, 71, 0.4);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all var(--transition-base);
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .meal-card:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .meal-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meal-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: var(--gradient-accent);
+            color: var(--bg-primary);
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .meal-content {
+            padding: 1.25rem;
+        }
+
+        .meal-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .meal-description {
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .meal-nutrition {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .nutrition-item {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .nutrition-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .nutrition-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        .meal-footer {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-meal {
+            flex: 1;
+            padding: 0.625rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-meal:hover {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .btn-meal-primary {
+            background: var(--gradient-primary);
+            border: none;
+            color: white;
+        }
+
+        .btn-meal-primary:hover {
+            background: var(--gradient-primary);
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: var(--text-tertiary);
+            margin-bottom: 1.5rem;
+        }
+
+        .insights-card {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.2) 0%, rgba(245, 87, 108, 0.2) 100%);
+            border: 1px solid rgba(240, 147, 251, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            margin-top: 2rem;
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .insights-card:hover {
+            border-color: rgba(240, 147, 251, 0.4);
+            box-shadow: 0 0 20px rgba(240, 147, 251, 0.15);
+        }
+
+        .insights-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .insights-icon {
+            font-size: 1.5rem;
+        }
+
+        .insights-title {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .insights-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .insight-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+        }
+
+        .insight-label {
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .dashboard-actions {
+                width: 100%;
+            }
+
+            .meal-card {
+                grid-column: span 1 !important;
+            }
+
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid-2,
+            .grid-3,
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="/" class="navbar-brand">
+            <i class="fas fa-brain"></i> AI Meal Planner Pro
+        </a>
+        <div class="navbar-menu">
+            <a href="/dashboard" class="navbar-item active">Dashboard</a>
+            <a href="/track" class="navbar-item">Track</a>
+            <a href="/food-upload" class="navbar-item">Upload</a>
+            <a href="/chat" class="navbar-item">AI Chat</a>
+            <div class="navbar-user">
+                <div style="width: 8px; height: 8px; background: var(--color-success); border-radius: 50%;"></div>
+                <div class="navbar-avatar" id="userAvatar">U</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-label">Main</div>
+        <a href="/dashboard" class="sidebar-item active">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/track" class="sidebar-item">
+            <i class="fas fa-utensils"></i>
+            <span>Track Food</span>
+        </a>
+        <a href="/food-upload" class="sidebar-item">
+            <i class="fas fa-image"></i>
+            <span>Upload Food</span>
+        </a>
+        <a href="/nutrition-optimizer" class="sidebar-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Optimizer</span>
+        </a>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Assistant</div>
+            <a href="/chat" class="sidebar-item">
+                <i class="fas fa-comments"></i>
+                <span>AI Food Therapist</span>
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">Account</div>
+            <a href="/profile" class="sidebar-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="/settings" class="sidebar-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="/logout" class="sidebar-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1>Welcome back! 👋</h1>
+                    <p id="greeting">Let's make today healthier</p>
+                </div>
+                <div class="dashboard-actions">
+                    <button class="btn btn-secondary btn-sm">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <button class="btn btn-primary btn-sm">
+                        <i class="fas fa-calendar"></i> Today
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="grid grid-4">
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-value" id="caloriesValue">0</div>
+                        <div class="stat-label">Calories Consumed</div>
+                        <div class="stat-change">↑ 120 remaining</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-icon">💪</div>
+                        <div class="stat-value" id="proteinValue">0g</div>
+                        <div class="stat-label">Protein</div>
+                        <div class="stat-change">50g goal</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-icon">🥗</div>
+                        <div class="stat-value" id="carbsValue">0g</div>
+                        <div class="stat-label">Carbs</div>
+                        <div class="stat-change">150g goal</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value" id="bmiValue">0</div>
+                        <div class="stat-label">BMI</div>
+                        <div class="stat-change">Normal range</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommended Meals Section -->
+            <div class="meal-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-sparkles" style="margin-right: 0.5rem;"></i> AI Recommendations</h2>
+                    <a href="/track">View all →</a>
+                </div>
+
+                <div class="grid grid-3">
+                    <!-- Meal Card 1 -->
+                    <div class="meal-card">
+                        <div class="meal-image">
+                            🍗
+                            <div class="meal-badge">Recommended</div>
+                        </div>
+                        <div class="meal-content">
+                            <div class="meal-name">Grilled Chicken Breast</div>
+                            <div class="meal-description">with brown rice and vegetables</div>
+                            <div class="meal-nutrition">
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">280</div>
+                                    <div class="nutrition-label">Cal</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">35g</div>
+                                    <div class="nutrition-label">Protein</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">8g</div>
+                                    <div class="nutrition-label">Fat</div>
+                                </div>
+                            </div>
+                            <div class="meal-footer">
+                                <button class="btn-meal">View Details</button>
+                                <button class="btn-meal btn-meal-primary">Add Meal</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meal Card 2 -->
+                    <div class="meal-card">
+                        <div class="meal-image">
+                            🥗
+                            <div class="meal-badge">High Protein</div>
+                        </div>
+                        <div class="meal-content">
+                            <div class="meal-name">Quinoa Buddha Bowl</div>
+                            <div class="meal-description">with tofu and leafy greens</div>
+                            <div class="meal-nutrition">
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">320</div>
+                                    <div class="nutrition-label">Cal</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">18g</div>
+                                    <div class="nutrition-label">Protein</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">12g</div>
+                                    <div class="nutrition-label">Fat</div>
+                                </div>
+                            </div>
+                            <div class="meal-footer">
+                                <button class="btn-meal">View Details</button>
+                                <button class="btn-meal btn-meal-primary">Add Meal</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meal Card 3 -->
+                    <div class="meal-card">
+                        <div class="meal-image">
+                            🍓
+                            <div class="meal-badge">Quick Snack</div>
+                        </div>
+                        <div class="meal-content">
+                            <div class="meal-name">Protein Smoothie</div>
+                            <div class="meal-description">with berries and Greek yogurt</div>
+                            <div class="meal-nutrition">
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">180</div>
+                                    <div class="nutrition-label">Cal</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">22g</div>
+                                    <div class="nutrition-label">Protein</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">3g</div>
+                                    <div class="nutrition-label">Fat</div>
+                                </div>
+                            </div>
+                            <div class="meal-footer">
+                                <button class="btn-meal">View Details</button>
+                                <button class="btn-meal btn-meal-primary">Add Meal</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights Section -->
+            <div class="insights-card">
+                <div class="insights-header">
+                    <div class="insights-icon">✨</div>
+                    <h3 class="insights-title">AI Insights</h3>
+                </div>
+                <div class="insights-content">
+                    <div class="insight-item">
+                        <div class="insight-label">💡 Tip</div>
+                        <div class="insight-value">+500 Cal</div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-label">📈 Streak</div>
+                        <div class="insight-value">7 days</div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-label">🎯 Progress</div>
+                        <div class="insight-value">65%</div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-label">⭐ Score</div>
+                        <div class="insight-value">8.5/10</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set greeting based on time
+        function setGreeting() {
+            const hour = new Date().getHours();
+            const greetingEl = document.getElementById('greeting');
+            if (hour < 12) {
+                greetingEl.textContent = 'Good morning! Let\'s make today healthier';
+            } else if (hour < 18) {
+                greetingEl.textContent = 'Good afternoon! Keep up the momentum';
+            } else {
+                greetingEl.textContent = 'Good evening! Finish strong today';
+            }
+        }
+
+        setGreeting();
+
+        // Initialize user avatar
+        function initUserAvatar() {
+            const userAvatar = document.getElementById('userAvatar');
+            // This would normally come from the logged-in user's data
+            userAvatar.textContent = 'U'; // First letter of username
+        }
+
+        initUserAvatar();
+    </script>
+</body>
+</html>

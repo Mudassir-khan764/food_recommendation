@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - NutriAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-dark: #1e7e34;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            box-shadow: var(--card-shadow);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 15px;
+        }
+
+        .profile-header h2 {
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .profile-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 0.95rem;
+        }
+
+        .section-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+        }
+
+        .section-card h5 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--light-bg);
+            padding-bottom: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--light-bg);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .goal-input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+
+        .btn-save-goals {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save-goals:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .summary-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .summary-current {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .summary-goal {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .progress-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin: 0 auto 15px;
+            position: relative;
+            background: conic-gradient(var(--primary-color) 0deg, var(--primary-color) var(--progress), #e9ecef var(--progress), #e9ecef 360deg);
+        }
+
+        .progress-circle-content {
+            width: 110px;
+            height: 110px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .progress-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .progress-label {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .meal-history {
+            margin-top: 20px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .history-item-name {
+            font-weight: 600;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .history-item-details {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .meal-history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .meal-column {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .meal-type-header {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meal-items {
+            min-height: 100px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+
+        .no-data i {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .history-item-calories {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 30px 20px;
+            color: #999;
+        }
+
+        .no-data i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .goal-input-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-leaf"></i> NutriAI</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/track">Track Food</a>
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/meal-planner">AI Meal Planner</a>
+                <a class="nav-link active" href="/profile">Profile</a>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar">👤</div>
+            <h2 id="userNameDisplay"></h2>
+            <p id="userEmailDisplay"></p>
+        </div>
+
+        <!-- Today's Summary -->
+        <div class="section-card">
+            <h5><i class="fas fa-chart-pie"></i> Today's Summary</h5>
+            <div class="summary-grid" id="todaySummary"></div>
+        </div>
+
+        <!-- Daily Goals -->
+        <div class="section-card">
+            <h5><i class="fas fa-bullseye"></i> Daily Nutritional Goals</h5>
+            <form id="goalsForm">
+                <div class="goal-input-row">
+                    <div class="form-group">
+                        <label for="calorieGoal">Daily Calories</label>
+                        <input type="number" id="calorieGoal" class="form-control" min="500" max="5000" step="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="proteinGoal">Protein (g)</label>
+                        <input type="number" id="proteinGoal" class="form-control" min="10" max="300" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="carbsGoal">Carbs (g)</label>
+                        <input type="number" id="carbsGoal" class="form-control" min="10" max="500" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="fatGoal">Fat (g)</label>
+                        <input type="number" id="fatGoal" class="form-control" min="10" max="200" step="5">
+                    </div>
+                </div>
+                <button type="submit" class="btn-save-goals">
+                    <i class="fas fa-save"></i> Save Goals
+                </button>
+            </form>
+        </div>
+
+        <!-- User Information -->
+        <div class="section-card">
+            <h5><i class="fas fa-user"></i> Personal Information</h5>
+            <div id="userInfo"></div>
+        </div>
+
+        <!-- Meal History -->
+        <div class="section-card">
+            <h5><i class="fas fa-history"></i> Today's Meal History</h5>
+            <div class="meal-history-grid">
+                <div class="meal-column">
+                    <h6 class="meal-type-header"><i class="fas fa-sun"></i> Breakfast</h6>
+                    <div id="breakfastHistory" class="meal-items">
+                        <div class="no-data"><i class="fas fa-coffee"></i><p>No breakfast logged</p></div>
+                    </div>
+                </div>
+                <div class="meal-column">
+                    <h6 class="meal-type-header"><i class="fas fa-utensils"></i> Lunch</h6>
+                    <div id="lunchHistory" class="meal-items">
+                        <div class="no-data"><i class="fas fa-utensils"></i><p>No lunch logged</p></div>
+                    </div>
+                </div>
+                <div class="meal-column">
+                    <h6 class="meal-type-header"><i class="fas fa-apple-alt"></i> Snack</h6>
+                    <div id="snackHistory" class="meal-items">
+                        <div class="no-data"><i class="fas fa-apple-alt"></i><p>No snacks logged</p></div>
+                    </div>
+                </div>
+                <div class="meal-column">
+                    <h6 class="meal-type-header"><i class="fas fa-moon"></i> Dinner</h6>
+                    <div id="dinnerHistory" class="meal-items">
+                        <div class="no-data"><i class="fas fa-moon"></i><p>No dinner logged</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load profile data
+        async function loadProfileData() {
+            try {
+                const response = await fetch('/api/profile_data');
+                if (!response.ok) throw new Error('Failed to load profile');
+
+                const data = await response.json();
+                renderProfile(data);
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        function renderProfile(data) {
+            // User name and email
+            document.getElementById('userNameDisplay').textContent = data.user_name || data.email;
+            document.getElementById('userEmailDisplay').textContent = data.email;
+
+            // Today's summary
+            const summary = data.today_summary;
+            const goals = data.daily_goals;
+
+            const summaryHtml = `
+                <div class="summary-box">
+                    <div class="progress-circle" style="--progress: ${Math.min((summary.calories / goals.daily_calorie_goal) * 360, 360)}deg;">
+                        <div class="progress-circle-content">
+                            <div class="progress-value">${Math.round(summary.calories)}</div>
+                            <div class="progress-label">kcal</div>
+                        </div>
+                    </div>
+                    <div class="summary-label">Calories</div>
+                    <div class="summary-goal">Goal: ${goals.daily_calorie_goal} kcal</div>
+                </div>
+
+                <div class="summary-box">
+                    <div class="progress-circle" style="--progress: ${Math.min((summary.protein / goals.daily_protein_goal) * 360, 360)}deg;">
+                        <div class="progress-circle-content">
+                            <div class="progress-value">${Math.round(summary.protein)}</div>
+                            <div class="progress-label">g</div>
+                        </div>
+                    </div>
+                    <div class="summary-label">Protein</div>
+                    <div class="summary-goal">Goal: ${goals.daily_protein_goal}g</div>
+                </div>
+
+                <div class="summary-box">
+                    <div class="progress-circle" style="--progress: ${Math.min((summary.carbs / goals.daily_carbs_goal) * 360, 360)}deg;">
+                        <div class="progress-circle-content">
+                            <div class="progress-value">${Math.round(summary.carbs)}</div>
+                            <div class="progress-label">g</div>
+                        </div>
+                    </div>
+                    <div class="summary-label">Carbs</div>
+                    <div class="summary-goal">Goal: ${goals.daily_carbs_goal}g</div>
+                </div>
+
+                <div class="summary-box">
+                    <div class="progress-circle" style="--progress: ${Math.min((summary.fat / goals.daily_fat_goal) * 360, 360)}deg;">
+                        <div class="progress-circle-content">
+                            <div class="progress-value">${Math.round(summary.fat)}</div>
+                            <div class="progress-label">g</div>
+                        </div>
+                    </div>
+                    <div class="summary-label">Fat</div>
+                    <div class="summary-goal">Goal: ${goals.daily_fat_goal}g</div>
+                </div>
+            `;
+            document.getElementById('todaySummary').innerHTML = summaryHtml;
+
+            // Goals form
+            document.getElementById('calorieGoal').value = goals.daily_calorie_goal;
+            document.getElementById('proteinGoal').value = goals.daily_protein_goal;
+            document.getElementById('carbsGoal').value = goals.daily_carbs_goal;
+            document.getElementById('fatGoal').value = goals.daily_fat_goal;
+
+            // User info
+            const userInfoHtml = `
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">${data.email}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Name</span>
+                    <span class="info-value">${data.user_name || 'Not set'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Member Since</span>
+                    <span class="info-value">${new Date(data.created_at).toLocaleDateString()}</span>
+                </div>
+            `;
+            document.getElementById('userInfo').innerHTML = userInfoHtml;
+
+            // Meal history - organized by meal type
+            const mealEmojis = {
+                breakfast: '🌅',
+                lunch: '🍽️',
+                snack: '🥗',
+                dinner: '🍴'
+            };
+
+            // Clear all meal columns
+            ['breakfast', 'lunch', 'snack', 'dinner'].forEach(mealType => {
+                const element = document.getElementById(`${mealType}History`);
+                element.innerHTML = '<div class="no-data"><i class="fas fa-utensils"></i><p>No ' + mealType + ' logged</p></div>';
+            });
+
+            if (data.today_meals && Object.values(data.today_meals).flat().length > 0) {
+                for (const [mealType, foods] of Object.entries(data.today_meals)) {
+                    const container = document.getElementById(`${mealType}History`);
+                    if (foods.length > 0) {
+                        let html = '';
+                        foods.forEach(food => {
+                            html += `
+                                <div class="history-item">
+                                    <div>
+                                        <div class="history-item-name">${food.food_name}</div>
+                                        <div class="history-item-details">${food.quantity}${food.portion_type} • ${Math.round(food.calories)} kcal</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    }
+                }
+            }
+        }
+
+        // Save goals
+        document.getElementById('goalsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            try {
+                const response = await fetch('/api/update_goals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        daily_calorie_goal: parseInt(document.getElementById('calorieGoal').value),
+                        daily_protein_goal: parseInt(document.getElementById('proteinGoal').value),
+                        daily_carbs_goal: parseInt(document.getElementById('carbsGoal').value),
+                        daily_fat_goal: parseInt(document.getElementById('fatGoal').value)
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Goals updated successfully!');
+                    loadProfileData();
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to update goals'));
+                }
+            } catch (error) {
+                alert('Error updating goals: ' + error.message);
+            }
+        });
+
+        // Initialize
+        loadProfileData();
+    </script>
+</body>
+</html>
